@@ -18,5 +18,6 @@ COPY rclone.conf /etc/rclone.conf
 COPY ./backup.sh /etc/periodic/daily/
 COPY ./entrypoint.sh /kozalo/entrypoint.sh
 
+RUN ["chmod", "+x", "/etc/periodic/daily/backup.sh", "/kozalo/entrypoint.sh"]
 ENTRYPOINT ["/kozalo/entrypoint.sh"]
 CMD ["postgres"]
