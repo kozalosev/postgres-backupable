@@ -15,9 +15,9 @@ VOLUME /backups
 COPY --from=rclone-downloader /usr/bin/rclone /usr/bin/rclone
 
 COPY rclone.conf /etc/rclone.conf
-COPY ./backup.sh /etc/periodic/daily/
+COPY ./backup.sh /etc/periodic/daily/backup
 COPY ./entrypoint.sh /kozalo/entrypoint.sh
 
-RUN ["chmod", "+x", "/etc/periodic/daily/backup.sh", "/kozalo/entrypoint.sh"]
+RUN ["chmod", "+x", "/etc/periodic/daily/backup", "/kozalo/entrypoint.sh"]
 ENTRYPOINT ["/kozalo/entrypoint.sh"]
 CMD ["postgres"]
