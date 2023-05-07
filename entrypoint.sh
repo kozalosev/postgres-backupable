@@ -6,4 +6,6 @@ then
     exit 1
 fi
 
+crond
+
 exec docker-entrypoint.sh "$@"
