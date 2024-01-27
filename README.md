@@ -7,6 +7,8 @@ Based on: postgres:14.5-alpine
 Additional environment variables
 --------------------------------
 * **BACKUP_S3_BUCKET** — the name of a bucket in your Scaleway Object storage.
+* **CRON=enabled** — to load the *pg_cron* extension at startup (don't use this if you edit *shared_preload_libraries*
+  manually).
 
 Configuration file
 ------------------

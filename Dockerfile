@@ -8,7 +8,10 @@ RUN wget https://downloads.rclone.org/rclone-current-linux-amd64.zip &&  \
 
 FROM postgres:14.5-alpine
 
+RUN apk add --no-cached postgresql-pg_cron
+
 ARG BACKUP_S3_BUCKET
+ARG CRON
 
 VOLUME /backups
 

@@ -8,4 +8,8 @@ fi
 
 crond
 
+if [ "$CRON" == "enabled" ]; then
+    sed -i "s/#shared_preload_libraries = ''/shared_preload_libraries = 'pg_cron'/" /var/lib/postgresql/data/postgresql.conf
+fi
+
 exec docker-entrypoint.sh "$@"
