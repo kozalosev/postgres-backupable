@@ -12,12 +12,13 @@ Image tags
 
 Additional environment variables
 --------------------------------
-* **BACKUP_S3_BUCKET** — the name of a bucket in your Scaleway Object storage.
+* **BACKUP_S3_BUCKET** — the name of a bucket in your Scaleway Object storage. Required: without it, the dumps stay
+  in `/backups` and every backup run ends with an error.
 * **BACKUP_RETENTION_DAYS** — how many days of daily dumps to keep (30 by default). The bucket is synced with the
   local directory, so older dumps are deleted from S3 as well.
 * **BACKUP_CRON** — when the backup runs, as five cron fields: minute, hour, day of month, month, day of week
-  (`0 1 * * *` is every day at 01:00). The time is the container's, UTC unless `TZ` is set. Unset, it's Alpine's
-  default of 02:00 every day. The container refuses to start if the value isn't five such fields.
+  (`0 1 * * *` is every day at 01:00). The time is the container's, UTC unless `TZ` is set. The default is
+  `0 2 * * *`, Alpine's own time for daily jobs. The container refuses to start if the value isn't five such fields.
 
 Configuration file
 ------------------

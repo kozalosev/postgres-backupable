@@ -8,7 +8,10 @@ RUN wget https://downloads.rclone.org/rclone-current-linux-amd64.zip &&  \
 
 FROM postgres:14.5-alpine
 
-ARG BACKUP_S3_BUCKET
+# Defaults of the settings backup.sh and entrypoint.sh read at runtime (see README). BACKUP_S3_BUCKET has no default:
+# every container sets its own.
+ENV BACKUP_RETENTION_DAYS=30 \
+    BACKUP_CRON="0 2 * * *"
 
 VOLUME /backups
 
