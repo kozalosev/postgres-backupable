@@ -2,13 +2,31 @@ PostgreSQL + rclone + Scaleway S3
 =================================
 [![Docker Hub image](https://img.shields.io/badge/Docker%20Hub-image-brightgreen)](https://hub.docker.com/r/kozalo/postgres-backupable)
 
-Based on: postgres:14.5-alpine
+Based on: postgres:19-alpine (with [pg_cron](https://github.com/citusdata/pg_cron) built in)
 
 Additional environment variables
 --------------------------------
 * **BACKUP_S3_BUCKET** — the name of a bucket in your Scaleway Object storage.
-* **CRON=enabled** — to load the *pg_cron* extension at startup (don't use this if you edit *shared_preload_libraries*
-  manually).
+* **CRON=enabled** — to load the *pg_cron* extension at startup. It's passed as command-line options
+  (`shared_preload_libraries=pg_cron`, `cron.database_name=$POSTGRES_DB`), which take precedence over
+  *postgresql.conf*. Run `CREATE EXTENSION pg_cron;` in that database once to start using it.
+
+Upgrading from 14.x
+-------------------
+A new major version of PostgreSQL can't use the data directory of the previous one, but there's no need to go through
+every version in between: a dump made by 14 can be restored into 19 directly.
+
+1. Make a fresh dump with the old container: `docker exec postgresql /etc/periodic/daily/backup`
+   (or take the latest `*.gz` file from `/backups/<user>/` or your bucket).
+2. Stop the container and move the `./data` directory aside (don't delete it until you've checked the new database).
+3. Switch the image to `kozalo/postgres-backupable:19`, temporarily without `CRON=enabled`, and start it with an empty
+   `./data` directory.
+4. Restore the dump: `gunzip -c <dump>.gz | docker exec -i postgresql psql -U "$POSTGRES_USER" -d postgres`.
+   Errors about the current role and the existing database are expected and can be ignored.
+5. Enable `CRON=enabled` back if you need it and restart the container.
+
+The default `PGDATA` of the official image has changed in PostgreSQL 18+. The example below sets it explicitly, so it
+keeps working.
 
 Configuration file
 ------------------
@@ -21,7 +39,7 @@ version: "3.7"
 services:
   <...>
   postgres:
-    image: kozalo/postgres-backupable
+    image: kozalo/postgres-backupable:19
     container_name: postgresql
     environment:
       - POSTGRES_PORT
