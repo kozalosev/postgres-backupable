@@ -4,9 +4,17 @@ PostgreSQL + rclone + Scaleway S3
 
 Based on: postgres:14.5-alpine
 
+Image tags
+----------
+* **14**, **14.1**, … — the major version of the image matches the major version of PostgreSQL. Pin the major tag in
+  your configuration: a new major version of PostgreSQL can't read data directories of the previous one.
+* **latest** — still points to the 14.x line but will be removed in the future. Don't rely on it.
+
 Additional environment variables
 --------------------------------
 * **BACKUP_S3_BUCKET** — the name of a bucket in your Scaleway Object storage.
+* **BACKUP_RETENTION_DAYS** — how many days of daily dumps to keep (30 by default). The bucket is synced with the
+  local directory, so older dumps are deleted from S3 as well.
 
 Configuration file
 ------------------
@@ -19,7 +27,7 @@ version: "3.7"
 services:
   <...>
   postgres:
-    image: kozalo/postgres-backupable
+    image: kozalo/postgres-backupable:14
     container_name: postgresql
     environment:
       - POSTGRES_PORT
