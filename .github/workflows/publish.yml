@@ -11,9 +11,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: echo "🎉 The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "🐧 This job is now running on a ${{ runner.os }} server hosted by GitHub!"
       - run: echo "🔎 The ref is ${{ github.ref }} and your repository is ${{ github.repository }}."
 
-      # main → latest + datetime; git tag "X.Y" → X.Y + X (never latest)
+      # main → datetime; git tag "X.Y" → X.Y + X
       - name: Generate image tags
         id: meta
         uses: docker/metadata-action@v5
@@ -21,7 +22,6 @@ jobs:
           images: ${{ env.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}
           flavor: latest=false
           tags: |
-            type=raw,value=latest,enable={{is_default_branch}}
             type=raw,value={{date 'YYYYMMDDHHmm'}},enable={{is_default_branch}}
             type=ref,event=tag
             type=match,pattern=^(\d+)\.,group=1
