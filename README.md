@@ -61,6 +61,7 @@ services:
     volumes:
       - ./data:/var/lib/postgresql/data
       - ./rclone.conf:/config/rclone.conf
+      - backups:/backups
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
       interval: 10s
@@ -70,4 +71,6 @@ services:
     restart: unless-stopped
     logging:
       driver: journald
+volumes:
+  backups:
 ```
