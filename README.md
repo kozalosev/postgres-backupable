@@ -4,9 +4,17 @@ PostgreSQL + rclone + Scaleway S3
 
 Based on: postgres:19-alpine (with [pg_cron](https://github.com/citusdata/pg_cron) built in)
 
+Image tags
+----------
+* **19**, **19.0**, **14**, **14.1**, … — the major version of the image matches the major version of PostgreSQL. Pin the major tag in
+  your configuration: a new major version of PostgreSQL can't read data directories of the previous one.
+* **latest** — still points to the 14.x line but will be removed in the future. Don't rely on it.
+
 Additional environment variables
 --------------------------------
 * **BACKUP_S3_BUCKET** — the name of a bucket in your Scaleway Object storage.
+* **BACKUP_RETENTION_DAYS** — how many days of daily dumps to keep (30 by default). The bucket is synced with the
+  local directory, so older dumps are deleted from S3 as well.
 * **CRON=enabled** — to load the *pg_cron* extension at startup. It's passed as command-line options
   (`shared_preload_libraries=pg_cron`, `cron.database_name=$POSTGRES_DB`), which take precedence over
   *postgresql.conf*. Run `CREATE EXTENSION pg_cron;` in that database once to start using it.
