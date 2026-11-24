@@ -12,12 +12,17 @@ Image tags
 
 Additional environment variables
 --------------------------------
-* **BACKUP_S3_BUCKET** — the name of a bucket in your Scaleway Object storage.
+* **BACKUP_S3_BUCKET** — the name of a bucket in your Scaleway Object storage. Required: without it, the dumps stay
+  in `/backups` and every backup run ends with an error.
 * **BACKUP_RETENTION_DAYS** — how many days of daily dumps to keep (30 by default). The bucket is synced with the
   local directory, so older dumps are deleted from S3 as well.
-* **CRON=enabled** — to load the *pg_cron* extension at startup. It's passed as command-line options
-  (`shared_preload_libraries=pg_cron`, `cron.database_name=$POSTGRES_DB`), which take precedence over
-  *postgresql.conf*. Run `CREATE EXTENSION pg_cron;` in that database once to start using it.
+* **BACKUP_CRON** — when the backup runs, as five cron fields: minute, hour, day of month, month, day of week
+  (`0 1 * * *` is every day at 01:00). The time is the container's, UTC unless `TZ` is set. The default is
+  `0 2 * * *`, Alpine's own time for daily jobs. The container refuses to start if the value isn't five such fields.
+* **CRON=enabled** — to load the *pg_cron* extension at startup (`disabled` by default). It's passed as command-line
+  options (`shared_preload_libraries=pg_cron`, `cron.database_name=$POSTGRES_DB`), which take precedence over
+  *postgresql.conf*. Run `CREATE EXTENSION pg_cron;` in that database once to start using it. It has nothing to do with
+  `BACKUP_CRON`: pg_cron runs SQL jobs inside PostgreSQL, while the backup is run by the container's crond.
 
 Upgrading from 14.x
 -------------------

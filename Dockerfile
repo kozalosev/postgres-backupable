@@ -20,8 +20,11 @@ RUN apk add --no-cache build-base &&  \
 
 FROM postgres:19-alpine
 
-ARG BACKUP_S3_BUCKET
-ARG CRON
+# Defaults of the settings backup.sh and entrypoint.sh read at runtime (see README). BACKUP_S3_BUCKET has no default:
+# every container sets its own.
+ENV BACKUP_RETENTION_DAYS=30 \
+    BACKUP_CRON="0 2 * * *" \
+    CRON=disabled
 
 VOLUME /backups
 
