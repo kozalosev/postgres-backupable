@@ -20,6 +20,24 @@ Additional environment variables
   (`0 1 * * *` is every day at 01:00). The time is the container's, UTC unless `TZ` is set. The default is
   `0 2 * * *`, Alpine's own time for daily jobs. The container refuses to start if the value isn't five such fields.
 
+Logs
+----
+The backup writes to the container's log (`docker logs`), next to PostgreSQL's own lines. Each line of its own starts
+with `backup:`, and every run ends with one of two:
+
+```
+2026-11-25T01:30:02Z backup: synced to kozalo-backup-example
+2026-11-25T01:30:01Z backup: FAILED at sync (exit code 1): BACKUP_S3_BUCKET is not set, the dump stays in /backups/user only
+```
+
+The steps are `dump`, `retention` and `sync`. A failed dump leaves no file behind, so nothing broken reaches the
+bucket. The sync gets an hour at most: rclone retrying an unreachable endpoint would otherwise run for hours and keep
+the next night's backup from starting. To be warned about failures, alert on `backup: FAILED`, and on no
+`backup: synced` for longer than the schedule's period: that also catches a backup that didn't run at all.
+
+Run a backup by hand with `docker exec <container> /etc/periodic/daily/backup`. Its output goes to that terminal
+then, not to the log.
+
 Configuration file
 ------------------
 Mount your `rclone.conf` file to `/config/rclone.conf`. [Example](rclone.conf) of the file.
