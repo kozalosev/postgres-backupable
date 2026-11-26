@@ -2,11 +2,11 @@ PostgreSQL + rclone + Scaleway S3
 =================================
 [![Docker Hub image](https://img.shields.io/badge/Docker%20Hub-image-brightgreen)](https://hub.docker.com/r/kozalo/postgres-backupable)
 
-Based on: postgres:14.5-alpine
+Based on: postgres:19-alpine (with [pg_cron](https://github.com/citusdata/pg_cron) built in)
 
 Image tags
 ----------
-* **14**, **14.1**, … — the major version of the image matches the major version of PostgreSQL. Pin the major tag in
+* **19**, **19.0**, **14**, **14.1**, … — the major version of the image matches the major version of PostgreSQL. Pin the major tag in
   your configuration: a new major version of PostgreSQL can't read data directories of the previous one.
 * **latest** — still points to the 14.x line but will be removed in the future. Don't rely on it.
 
@@ -19,6 +19,27 @@ Additional environment variables
 * **BACKUP_CRON** — when the backup runs, as five cron fields: minute, hour, day of month, month, day of week
   (`0 1 * * *` is every day at 01:00). The time is the container's, UTC unless `TZ` is set. The default is
   `0 2 * * *`, Alpine's own time for daily jobs. The container refuses to start if the value isn't five such fields.
+* **CRON=enabled** — to load the *pg_cron* extension at startup (`disabled` by default). It's passed as command-line
+  options (`shared_preload_libraries=pg_cron`, `cron.database_name=$POSTGRES_DB`), which take precedence over
+  *postgresql.conf*. Run `CREATE EXTENSION pg_cron;` in that database once to start using it. It has nothing to do with
+  `BACKUP_CRON`: pg_cron runs SQL jobs inside PostgreSQL, while the backup is run by the container's crond.
+
+Upgrading from 14.x
+-------------------
+A new major version of PostgreSQL can't use the data directory of the previous one, but there's no need to go through
+every version in between: a dump made by 14 can be restored into 19 directly.
+
+1. Make a fresh dump with the old container: `docker exec postgresql /etc/periodic/daily/backup`
+   (or take the latest `*.gz` file from `/backups/<user>/` or your bucket).
+2. Stop the container and move the `./data` directory aside (don't delete it until you've checked the new database).
+3. Switch the image to `kozalo/postgres-backupable:19`, temporarily without `CRON=enabled`, and start it with an empty
+   `./data` directory.
+4. Restore the dump: `gunzip -c <dump>.gz | docker exec -i postgresql psql -U "$POSTGRES_USER" -d postgres`.
+   Errors about the current role and the existing database are expected and can be ignored.
+5. Enable `CRON=enabled` back if you need it and restart the container.
+
+The default `PGDATA` of the official image has changed in PostgreSQL 18+. The example below sets it explicitly, so it
+keeps working.
 
 Logs
 ----
@@ -53,7 +74,7 @@ Example of _docker-compose.yaml_
 services:
   <...>
   postgres:
-    image: kozalo/postgres-backupable:14
+    image: kozalo/postgres-backupable:19
     container_name: postgresql
     environment:
       - POSTGRES_PORT
