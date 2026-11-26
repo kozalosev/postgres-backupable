@@ -14,8 +14,10 @@ Additional environment variables
 --------------------------------
 * **BACKUP_S3_BUCKET** — the name of a bucket in your Scaleway Object storage. Required: without it, the dumps stay
   in `/backups` and every backup run ends with an error.
-* **BACKUP_RETENTION_DAYS** — how many days of daily dumps to keep (30 by default). The bucket is synced with the
-  local directory, so older dumps are deleted from S3 as well.
+* **BACKUP_RETENTION_DAYS** — how many days of daily dumps to keep in the bucket (30 by default); older ones are
+  deleted from it. Only `*.gz` files are deleted, and other objects in the bucket are left alone. The history is kept
+  in the bucket only: `/backups/<user>/` holds just the latest dump, plus any dumps that haven't reached the bucket
+  yet.
 * **BACKUP_CRON** — when the backup runs, as five cron fields: minute, hour, day of month, month, day of week
   (`0 1 * * *` is every day at 01:00). The time is the container's, UTC unless `TZ` is set. The default is
   `0 2 * * *`, Alpine's own time for daily jobs. The container refuses to start if the value isn't five such fields.
@@ -30,9 +32,10 @@ with `backup:`, and every run ends with one of two:
 2026-11-25T01:30:01Z backup: FAILED at sync (exit code 1): BACKUP_S3_BUCKET is not set, the dump stays in /backups/user only
 ```
 
-The steps are `dump`, `retention` and `sync`. A failed dump leaves no file behind, so nothing broken reaches the
-bucket. The sync gets an hour at most: rclone retrying an unreachable endpoint would otherwise run for hours and keep
-the next night's backup from starting. To be warned about failures, alert on `backup: FAILED`, and on no
+The steps are `dump`, `sync` and `retention`, in that order. A failed dump leaves no file behind, so nothing broken
+reaches the bucket. A failed sync deletes nothing: the dumps wait in `/backups/<user>/` and go up with the next
+successful run. Each rclone call gets an hour at most: rclone retrying an unreachable endpoint would otherwise run for
+hours and keep the next night's backup from starting. To be warned about failures, alert on `backup: FAILED`, and on no
 `backup: synced` for longer than the schedule's period: that also catches a backup that didn't run at all.
 
 Inside the container, the scheduled run is also kept in `/var/log/backup.log`, and the previous one in
