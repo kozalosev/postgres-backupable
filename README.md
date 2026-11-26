@@ -35,12 +35,13 @@ bucket. The sync gets an hour at most: rclone retrying an unreachable endpoint w
 the next night's backup from starting. To be warned about failures, alert on `backup: FAILED`, and on no
 `backup: synced` for longer than the schedule's period: that also catches a backup that didn't run at all.
 
-Run a backup by hand with `docker exec <container> /etc/periodic/daily/backup`. Its output goes to that terminal
-then, not to the log.
-
 Inside the container, the scheduled run is also kept in `/var/log/backup.log`, and the previous one in
 `/var/log/backup.log.1`: each run starts by replacing the older file, so they don't grow. Every run in the container's
 log is preceded by `tail: /var/log/backup.log has been replaced; following end of new file`, which is expected.
+
+All of this applies to scheduled runs. To test the setup without waiting for the schedule, run a backup by hand with
+`docker exec <container> /etc/periodic/daily/backup`: its lines look the same but go to your terminal, not to the
+container's log or these files.
 
 Configuration file
 ------------------
