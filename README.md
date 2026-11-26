@@ -50,7 +50,6 @@ Mount your `rclone.conf` file to `/config/rclone.conf`. [Example](rclone.conf) o
 Example of _docker-compose.yaml_
 --------------------------------
 ```YAML
-version: "3.7"
 services:
   <...>
   postgres:
