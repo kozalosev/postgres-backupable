@@ -38,6 +38,10 @@ the next night's backup from starting. To be warned about failures, alert on `ba
 Run a backup by hand with `docker exec <container> /etc/periodic/daily/backup`. Its output goes to that terminal
 then, not to the log.
 
+Inside the container, the scheduled run is also kept in `/var/log/backup.log`, and the previous one in
+`/var/log/backup.log.1`: each run starts by replacing the older file, so they don't grow. Every run in the container's
+log is preceded by `tail: /var/log/backup.log has been replaced; following end of new file`, which is expected.
+
 Configuration file
 ------------------
 Mount your `rclone.conf` file to `/config/rclone.conf`. [Example](rclone.conf) of the file.
